@@ -53,7 +53,7 @@ def main():
         else:
             logging.debug('File {!r} doesn\'t exist.  Exiting'.format(
                     arguments['ssim']))
-            sis.exit('SSIM file name provided not found.')
+            sys.exit('SSIM file name provided not found.')
 
         filename = args['ssim']
         if is_file_compressed(filename):

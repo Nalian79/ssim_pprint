@@ -1,3 +1,4 @@
-utils.pyc
-utils.py~
-ssim_pprint.log
+*.pyc
+*.py~
+*.log
+env
