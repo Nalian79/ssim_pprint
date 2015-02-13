@@ -67,29 +67,28 @@ def parse_record_four(line):
     return seg_dict
 
 
-def parse_file(carrier, filename, flight):
+def parse_file(carrier, filename):
     """Read an SSIM file, then call record type parsers to fill in data.
 
     Args:
       carrier: str. Two character IATA code for Airline Carrier
       filename: Str. The file to parse
-      flight: Int.  The number of the flight to return data on.
     Returns:
       Once I know what I'm returning fill this in.
     """
 
     carrier_regex = r'^2.' + carrier
-    print carrier_regex
     carrier_record = {}
     leg_record = {}
     seg_record = {}
     with open(filename, 'rb') as f:
         for line in f:
             if re.search(carrier_regex, line):
-                carrier_record = parse_record_two(line)
-            if re.search('^3', line):
+#                carrier_record = parse_record_two(line)
+                carrier_record.update(parse_record_two(line))
+            elif re.search('^3', line):
                 leg_record = parse_record_three(line)
-            if re.search('^4', line):
+            elif re.search('^4', line):
                 seg_record = parse_record_four(line)
             return carrier_record, leg_record, seg_record
 
