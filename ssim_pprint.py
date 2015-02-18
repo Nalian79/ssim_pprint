@@ -4,12 +4,13 @@ import os
 import re
 import sys
 
+from record_types import RecordTwo, RecordThree, RecordFour
 from utils import is_file_compressed, uncompress
 
 # Set the log output file and log level.
 logging.basicConfig(filename='ssim_pprint.log', level=logging.DEBUG)
 
-def parse_record_two(line):
+def make_recordtwo_dict(line):
     """Create a dictionary from an SSIM record 2. """
     carrier_dict = {
         'time_mode' : line[1],
@@ -23,7 +24,7 @@ def parse_record_two(line):
     return carrier_dict
 
 
-def parse_record_three(line):
+def make_recordthree_dict(line):
     leg_dict = {
         'carrier_code' : line[2:5], # Two character IATA airline code
         'flight_num' : line[5:9],
@@ -65,7 +66,7 @@ def parse_record_three(line):
     return leg_dict
 
 
-def parse_record_four(line):
+def make_recordfour_dict(line):
     seg_dict = {
         'op_suffix' : line[1],
         'carrier_code' : line[2:4],
@@ -91,23 +92,26 @@ def parse_records(carrier, filename):
       carrier: str. Two character IATA code for Airline Carrier
       filename: Str. The file to parse
     Returns:
-      Once I know what I'm returning fill this in.
+      A tuple of record objects
     """
 
-    carrier_regex = r'^2.' + carrier
-    carrier_record = {}
-    leg_record = {}
-    seg_record = {}
+    carrier_regex = '^2.' + carrier.upper()
+    leg_regex = '^3.' + carrier.upper()
+    seg_regex = '^4.' + carrier.upper()
+    carrier_record = []
+    leg_record = []
+    seg_record = []
+    my_rec_two = ''
     with open(filename, 'rb') as f:
         for line in f:
             if re.search(carrier_regex, line):
-                carrier_record.update(parse_record_two(line))
-            elif re.search('^3', line):
-                leg_record = parse_record_three(line)
-            elif re.search('^4', line):
-                seg_record = parse_record_four(line)
+#            if re.search('^2', line):
+                carrier_record.append(RecordTwo(line))
+            if re.search(leg_regex, line):
+                leg_record.append(RecordThree(line))
+            if re.search(seg_regex, line):
+                seg_record.append(RecordFour(line))
         return carrier_record, leg_record, seg_record
-
 
 def parse_commands():
     """ Construct the command line parser."""

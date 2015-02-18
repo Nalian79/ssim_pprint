@@ -45,3 +45,9 @@ def uncompress(filename):
         return new_name
     else:
         return filename
+
+
+def makeSingleCarrierSSIM(filename):
+    """Create a single carrier SSIM file from a multiple carrier SSIM."""
+    # stub for the moment
+    pass
