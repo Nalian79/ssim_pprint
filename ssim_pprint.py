@@ -13,37 +13,54 @@ def parse_record_two(line):
     """Create a dictionary from an SSIM record 2. """
     carrier_dict = {
         'time_mode' : line[1],
-        'carrier_code' : line[2:4],
-        'validity_period' : line[14:27],
-        'creation' : line[28:34],
-        'sell_date' : line[64:70],
+        'carrier_code' : line[2:5],
+        'validity_period' : line[14:28],
+        'creation' : line[28:35],
+        'sell_date' : line[64:71],
         'secure_flight' : line[168],
-        'eticket' : line[188:189]
+        'eticket' : line[188:190]
         }
     return carrier_dict
 
 
 def parse_record_three(line):
     leg_dict = {
-        'carrier_code' : line[2:4],
-        'flight_num' : line[5:8],
-        'ivi' : line[9:10],
-        'leg_seq' : line[11:12],
-        'service_type' : line[13],
-        'period_of_op' : line[14:27],
-        'days_of_op' : line[28:34],
-        'dep_station' : line[36:38],
-        'pass_std' : line[39:42],
-        'pass_dterm' : line[52:53],
-        'arr_station' : line[54:56],
-        'pass_sta' : line[61:64],
-        'utc_variation' : line[65:79],
-        'pass_aterm' : line[70:71],
-        'aircraft_type' : line[72:74],
-        'mct' : line[119:120],
-        'secure_flight' : line[121],
-        'airline_des' : line[137:139],
-        'fnum' : line[140:143]
+        'carrier_code' : line[2:5], # Two character IATA airline code
+        'flight_num' : line[5:9],
+        'ivi' : line[9:11], # Itinerary Variation Identifier
+        'leg_seq' : line[11:13], # Leg Sequence Number
+        'service_type' : line[13], # Passenger, Cargo, Mail, etc
+        'period_of_op_start' : line[14:21],
+        'period_of_op_end' : line[21:28],
+        'days_of_op' : line[28:35], # Days of operation
+        'freq_rate' : line[35], # Frequency rate
+        'departure_station' : line[36:39],
+        'passenger_std' : line[39:43], # Schedule time of Passenger departure
+        'aircraft_std' : line[43:47], # Scheduled time of Aircraft departure
+        'dep_utc_variation' : line[47:52], # UTC variation for origin
+        'pass_dterm' : line[52:53], # Passenger Terminal for depature
+        'arrival_station' : line[54:56],
+        'air_sta' : line[57:61], # Aircraft scheduled time of Arrival
+        'pass_sta' : line[61:64], # Passenger scheduled time of Arrival
+        'arr_utc_variation' : line[65:79], # UTC variation for destination
+        'pass_aterm' : line[70:71], # Passenger arrival terminal
+        'aircraft_type' : line[72:74], # Type of aircraft
+        'prdb' : line[75:95], # Passenger Reservations Booking Designator
+        'prbm' : line[95:100], # passenger reservations booking modifier
+        'meal_service' : line[100:110],
+        'mct' : line[119:120], # Minimum Connection Time
+        'secure_flight' : line[121], # Secure flight indicator
+        'ivi_overflow' : line[127],
+        'aircraft_owner' : line[128:131],
+        'cockpit_crew' : line[131:134],
+        'cabin_crew' : line[134:137],
+        'onward_airline' : line[137:139], # Airline Designator
+        'onward_flight_num' : line[140:143],
+        'disclosure' : line[148], # operating airline disclosure - DEI 2
+        'traffic_restriction' : line[149:160],
+        'aircraft_configuration' : line[172:192],
+        'date_variation' : line[192:194],
+        'record_serial_num' : line[194:200]
         }
     return leg_dict
 
@@ -67,7 +84,7 @@ def parse_record_four(line):
     return seg_dict
 
 
-def parse_file(carrier, filename):
+def parse_records(carrier, filename):
     """Read an SSIM file, then call record type parsers to fill in data.
 
     Args:
@@ -84,13 +101,12 @@ def parse_file(carrier, filename):
     with open(filename, 'rb') as f:
         for line in f:
             if re.search(carrier_regex, line):
-#                carrier_record = parse_record_two(line)
                 carrier_record.update(parse_record_two(line))
             elif re.search('^3', line):
                 leg_record = parse_record_three(line)
             elif re.search('^4', line):
                 seg_record = parse_record_four(line)
-            return carrier_record, leg_record, seg_record
+        return carrier_record, leg_record, seg_record
 
 
 def parse_commands():
