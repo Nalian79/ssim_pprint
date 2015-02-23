@@ -39,13 +39,13 @@ def make_recordthree_dict(line):
         'passenger_std' : line[39:43], # Schedule time of Passenger departure
         'aircraft_std' : line[43:47], # Scheduled time of Aircraft departure
         'dep_utc_variation' : line[47:52], # UTC variation for origin
-        'pass_dterm' : line[52:53], # Passenger Terminal for depature
-        'arrival_station' : line[54:56],
+        'pass_dterm' : line[52:54], # Passenger Terminal for depature
+        'arrival_station' : line[54:57],
         'air_sta' : line[57:61], # Aircraft scheduled time of Arrival
-        'pass_sta' : line[61:64], # Passenger scheduled time of Arrival
-        'arr_utc_variation' : line[65:79], # UTC variation for destination
-        'pass_aterm' : line[70:71], # Passenger arrival terminal
-        'aircraft_type' : line[72:74], # Type of aircraft
+        'pass_sta' : line[61:65], # Passenger scheduled time of Arrival
+        'arr_utc_variation' : line[65:70], # UTC variation for destination
+        'pass_aterm' : line[70:72], # Passenger arrival terminal
+        'aircraft_type' : line[72:75], # Type of aircraft
         'prdb' : line[75:95], # Passenger Reservations Booking Designator
         'prbm' : line[95:100], # passenger reservations booking modifier
         'meal_service' : line[100:110],
@@ -55,13 +55,13 @@ def make_recordthree_dict(line):
         'aircraft_owner' : line[128:131],
         'cockpit_crew' : line[131:134],
         'cabin_crew' : line[134:137],
-        'onward_airline' : line[137:139], # Airline Designator
-        'onward_flight_num' : line[140:143],
+        'onward_airline' : line[137:140], # Airline Designator
+        'onward_flight_num' : line[140:144],
         'disclosure' : line[148], # operating airline disclosure - DEI 2
         'traffic_restriction' : line[149:160],
         'aircraft_configuration' : line[172:192],
         'date_variation' : line[192:194],
-        'record_serial_num' : line[194:200]
+        'record_serial_num' : line[194:]
         }
     return leg_dict
 
@@ -69,18 +69,19 @@ def make_recordthree_dict(line):
 def make_recordfour_dict(line):
     seg_dict = {
         'op_suffix' : line[1],
-        'carrier_code' : line[2:4],
-        'flight_num' : line[5:8],
-        'ivi' : line[9:10],
-        'leg_seq' : line[11:12],
+        'carrier_code' : line[2:5],
+        'flight_num' : line[5:9],
+        'ivi' : line[9:11],
+        'leg_seq' : line[11:13],
         'service_type' : line[13],
-        'board_point_indicator' : line[18:28],
+        'board_point_indicator' : line[18:29],
         'off_point_indicator' : line[29],
-        'dei' : line[30:32],
-        'seg' : line[33:38],
-        'board_point' : line[33:35],
-        'off_point' : line[36:38],
+        'dei' : line[30:33],
+        'seg' : line[33:39],
+        'board_point' : line[33:36],
+        'off_point' : line[36:39],
         'dei_data' : line[40:194],
+        'record_serial_number' : line[194:]
         }
     return seg_dict
 
@@ -105,13 +106,24 @@ def parse_records(carrier, filename):
     with open(filename, 'rb') as f:
         for line in f:
             if re.search(carrier_regex, line):
-#            if re.search('^2', line):
                 carrier_record.append(RecordTwo(line))
             if re.search(leg_regex, line):
                 leg_record.append(RecordThree(line))
             if re.search(seg_regex, line):
                 seg_record.append(RecordFour(line))
-        return carrier_record, leg_record, seg_record
+        return carrier_record, leg_records, seg_records
+
+
+def combine_records(record_list):
+    """Compress multiple record objects dealing with 1 flight into one object
+    """
+    # Need an object to store the final compressed record in
+    for records in record_list:
+        # if the record.name is new, store it in the final object
+        # if record.name is present in the final object, then move on
+        # to other record parts.  For each unique part, store it in the
+        # final object - discard repeats.
+
 
 def parse_commands():
     """ Construct the command line parser."""
