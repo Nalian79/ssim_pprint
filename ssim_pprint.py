@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from flight_classes import RecordTwo, RecordThree, RecordFour
+from flight_classes import RecordTwo, RecordThree, RecordFour, Flight
 from utils import is_file_compressed, uncompress
 
 # Set the log output file and log level.
@@ -37,6 +37,41 @@ def parse_records(carrier, filename):
             if re.search(seg_regex, line):
                 seg_records.append(RecordFour(line))
         return carrier_record, leg_records, seg_records
+
+
+def create_flights(records, flights):
+    """Create unique flight objects from a list of record objects.
+
+    Args:
+      records: list. List of record objects obtained via parsing an SSIM file.
+      flights: dict. An empty dictionary to put flight objects into.
+    Returns:
+      flights: dict. Mapping of flight names to flight objects.
+    """
+    for record in records:
+        flightname = record.carrier_code + record.flight
+        flightname = flightname.replace(" ", "")
+        if not flightname in flights:
+            flights[flightname] = Flight(record.carrier_code, record.flight)
+
+
+def update_flights(records, flights):
+    """Update flight objects with information from record objects.
+
+    Args:
+      records: list.  List of record objects obtained via parsing an SSIM file.
+      flights: dict.  A dictionary of flight objects to update.
+    returns:
+      flights: dict. Updated dictionary of flight objects.
+ """
+    for record in records:
+        flightname = record.carrier_code + record.flight
+        flightname = flightname.replace(" ", "")
+        if flightname in flights:
+            flightobj = flights[flightname]
+            flightobj.create_variation(record.ivi)
+            flightobj.update_variation(record)
+
 
 
 def parse_commands():
@@ -86,13 +121,22 @@ def main():
             sys.exit('SSIM file name provided not found.')
 
         filename = args['ssim']
+        carrier = args['carrier']
         if is_file_compressed(filename):
             file_to_parse = uncompress(filename)
         else:
             file_to_parse = filename
             pass
-        print("Check file {!r}".format(file_to_parse))
+        print("SSIM file {!r} now uncompressed".format(file_to_parse))
+        # parse the file into record objects
+        record2s, record3s, record4s = parse_records(carrier, file_to_parse)
+        # Create a dictionary for keeping track of flight objects
+        flights = {}
+        create_flights(record3s, flights)
+        update_flights(record3s, flights)
 
+        for k in flights:
+            print flights[k].name, flights[k].flight_num, flights[k].ivi
 
 
 if __name__ == "__main__":
