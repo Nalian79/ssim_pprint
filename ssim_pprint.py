@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from record_types import RecordTwo, RecordThree, RecordFour
+from flight_classes import RecordTwo, RecordThree, RecordFour
 from utils import is_file_compressed, uncompress
 
 # Set the log output file and log level.
@@ -37,17 +37,6 @@ def parse_records(carrier, filename):
             if re.search(seg_regex, line):
                 seg_record.append(RecordFour(line))
         return carrier_record, leg_records, seg_records
-
-
-def combine_records(record_list):
-    """Compress multiple record objects dealing with 1 flight into one object
-    """
-    # Need an object to store the final compressed record in
-    for records in record_list:
-        # if the record.name is new, store it in the final object
-        # if record.name is present in the final object, then move on
-        # to other record parts.  For each unique part, store it in the
-        # final object - discard repeats.
 
 
 def parse_commands():
