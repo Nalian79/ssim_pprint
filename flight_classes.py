@@ -136,21 +136,40 @@ class Flight(object):
         """ Create an initial flight variation."""
         if not ivi in self.ivi:
             self.ivi[ivi] = {}
+        return self.ivi
 
     def update_variation(self, record):
         """ Take an incoming record 3 or 4, update variation info"""
+        print self.ivi
         if self.ivi[record.ivi]:
-            logging.info("Found Itinerary Variation {} for Flight {}".format(
-                    record.ivi, self.name))
+            print "Found Itinerary Variation {} for Flight {}".format(
+                    record.ivi, self.name)
             if self.ivi[record.ivi][record.leg_sequence]:
-                logging.info(
-                    "Found leg sequence {} for Flight {} and IVI {}".format(
+                print("Found leg sequence {} for Flight {} and IVI {}".format(
                         record.leg_sequence, self.name, record.ivi))
                 leg = self.ivi[record.ivi][record.leg_sequence]
             else:
-                logging.info(
+                print(
                     "Creating leg sequence {} for flight {} and IVI {}".format(
                         record.leg_sequence, self.name, record.ivi))
                 self.ivi[record.ivi][record.leg_sequence] = {}
                 leg = self.ivi[record.ivi][record.leg_sequence]
+                print leg
+            if record.name.endswith('r3'):
+                print leg
+                leg['start'] = record.period_of_operation_start
+                leg['end'] = record.period_of_operation_end
+                leg['days'] = record.days_of_operation
+                leg['origin'] = record.departure_station
+                leg['departure_time'] = record.passenger_std
+                leg['departure_timeoffset'] = record.departure_utc_variation
+                leg['destination'] = record.arrival_station
+                leg['arrival_time'] = record.passenger_sta
+                leg['arrival_timeoffset'] = record.arrival_utc_variation
+                leg['mct'] = record.mct
+                leg['codeshare_partners'] = record.joint_airline_designator
+            if record.name.endswith('r4'):
+                print leg
+                leg['dei'] = record.dei
+                leg['dei_data'] = record.dei_data
         return self.ivi
