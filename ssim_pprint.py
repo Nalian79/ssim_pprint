@@ -25,17 +25,17 @@ def parse_records(carrier, filename):
     leg_regex = '^3.' + carrier.upper()
     seg_regex = '^4.' + carrier.upper()
     carrier_record = []
-    leg_record = []
-    seg_record = []
+    leg_records = []
+    seg_records = []
     my_rec_two = ''
     with open(filename, 'rb') as f:
         for line in f:
             if re.search(carrier_regex, line):
                 carrier_record.append(RecordTwo(line))
             if re.search(leg_regex, line):
-                leg_record.append(RecordThree(line))
+                leg_records.append(RecordThree(line))
             if re.search(seg_regex, line):
-                seg_record.append(RecordFour(line))
+                seg_records.append(RecordFour(line))
         return carrier_record, leg_records, seg_records
 
 
