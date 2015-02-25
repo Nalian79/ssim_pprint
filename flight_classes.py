@@ -140,36 +140,25 @@ class Flight(object):
 
     def update_variation(self, record):
         """ Take an incoming record 3 or 4, update variation info"""
-        print self.ivi
-        if self.ivi[record.ivi]:
-            print "Found Itinerary Variation {} for Flight {}".format(
-                    record.ivi, self.name)
-            if self.ivi[record.ivi][record.leg_sequence]:
-                print("Found leg sequence {} for Flight {} and IVI {}".format(
-                        record.leg_sequence, self.name, record.ivi))
-                leg = self.ivi[record.ivi][record.leg_sequence]
-            else:
-                print(
-                    "Creating leg sequence {} for flight {} and IVI {}".format(
-                        record.leg_sequence, self.name, record.ivi))
-                self.ivi[record.ivi][record.leg_sequence] = {}
-                leg = self.ivi[record.ivi][record.leg_sequence]
-                print leg
-            if record.name.endswith('r3'):
-                print leg
-                leg['start'] = record.period_of_operation_start
-                leg['end'] = record.period_of_operation_end
-                leg['days'] = record.days_of_operation
-                leg['origin'] = record.departure_station
-                leg['departure_time'] = record.passenger_std
-                leg['departure_timeoffset'] = record.departure_utc_variation
-                leg['destination'] = record.arrival_station
-                leg['arrival_time'] = record.passenger_sta
-                leg['arrival_timeoffset'] = record.arrival_utc_variation
-                leg['mct'] = record.mct
-                leg['codeshare_partners'] = record.joint_airline_designator
-            if record.name.endswith('r4'):
-                print leg
-                leg['dei'] = record.dei
-                leg['dei_data'] = record.dei_data
+        if not record.ivi in self.ivi:
+            print("Must create variations first before updating")
+            exit(1)
+        if not record.leg_sequence in self.ivi[record.ivi]:
+            self.ivi[record.ivi][record.leg_sequence] = {}
+        if record.name.endswith('r3'):
+            self.ivi[record.ivi][record.leg_sequence]['start'] = record.period_of_operation_start
+            self.ivi[record.ivi][record.leg_sequence]['end'] = record.period_of_operation_end
+            self.ivi[record.ivi][record.leg_sequence]['days'] = record.days_of_operation
+            self.ivi[record.ivi][record.leg_sequence]['origin'] = record.departure_station
+            self.ivi[record.ivi][record.leg_sequence]['departure_time'] = record.passenger_std
+            self.ivi[record.ivi][record.leg_sequence]['departure_timeoffset'] = record.departure_utc_variation
+            self.ivi[record.ivi][record.leg_sequence]['destination'] = record.arrival_station
+            self.ivi[record.ivi][record.leg_sequence]['arrival_time'] = record.passenger_sta
+            self.ivi[record.ivi][record.leg_sequence]['arrival_timeoffset'] = record.arrival_utc_variation
+            self.ivi[record.ivi][record.leg_sequence]['mct'] = record.mct
+            self.ivi[record.ivi][record.leg_sequence]['codeshare_partners'] = record.joint_airline_designator
+        if record.name.endswith('r4'):
+            print leg
+            self.ivi[record.ivi][record.leg_sequence]['dei'] = record.dei
+            self.ivi[record.ivi][record.leg_sequence]['dei_data'] = record.dei_data
         return self.ivi
