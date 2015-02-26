@@ -5,6 +5,7 @@ class RecordTwo(object):
     """Parse an SSIM record two entry. """
 
     def __init__(self, line):
+        self.original_record = line
         self.time_mode = line[1].strip()
         self.carrier_code = line[2:5].strip()
         self.validity_period = line[14:28].strip()
@@ -39,6 +40,7 @@ class RecordThree(object):
     """ Parse an SSIM record three entry """
 
     def __init__(self, line):
+        self.original_record = line
         self.carrier_code = line[2:5].strip()
         self.flight = line[5:9].strip()
         self.ivi = line[9:11].strip() # Itinerary Variation Identifier
@@ -49,21 +51,21 @@ class RecordThree(object):
         self.days_of_operation = line[28:35].strip()
         self.frequency_rate = line[35].strip()
         self.departure_station = line[36:39].strip()
-        self.passenger_std = line[39:43].strip() # Passenger Scheduled Time Departure
-        self.aircraft_std = line[43:47].strip() # Aircraft Scheduled Time Departure
-        self.departure_utc_variation = line[47:52].strip() # UTC variation for origin
+        self.passenger_std = line[39:43].strip()
+        self.aircraft_std = line[43:47].strip()
+        self.departure_utc_variation = line[47:52].strip()
         self.passenger_departure_terminal = line[52:54].strip()
         self.arrival_station = line[54:57].strip()
-        self.aircraft_sta = line[57:61].strip() # Aircraft Scheduled Time Arrival
-        self.passenger_sta = line[61:65].strip() # Passenger Scheduled Time Arrival
-        self.arrival_utc_variation = line[65:70].strip() # UTC variation for destination
+        self.aircraft_sta = line[57:61].strip()
+        self.passenger_sta = line[61:65].strip()
+        self.arrival_utc_variation = line[65:70].strip()
         self.passenger_arrival_terminal = line[70:72].strip()
         self.aircraft_type = line[72:75].strip()
-        self.prdb = line[75:95].strip() # Passenger Reservations Booking Designator
-        self.prbm = line[95:100].strip() # Passenger Reservations Booking Modifier
+        self.prdb = line[75:95].strip() # Booking Designator
+        self.prbm = line[95:100].strip() # Booking Modifier
         self.meal_service = line[100:110].strip()
         self.joint_airline_designator = line[110:119].strip()
-        self.mct = line[119:120].strip() # Minimum Connection Time
+        self.mct = line[119:120].strip()
         self.secure_flight = line[121].strip() # Secure Flight Indicator
         self.ivi_overflow = line[127].strip() # Itinerary Variation Overflow
         self.aircraft_owner = line[128:131].strip()
@@ -71,8 +73,9 @@ class RecordThree(object):
         self.cabin_crew = line[134:137].strip()
         self.onward_airline = line[137:139].strip()
         self.onward_flight = line[140:143].strip()
-        self.disclosure = line[148].strip() # Operating Airline disclosure - DEI 2
+        self.disclosure = line[148].strip() # DEI 2
         self.traffic_restriction = line[149:160].strip()
+        self.traffic_restriction_overflow = line[160]
         self.aircraft_configuration = line[172:192].strip()
         self.date_variation = line[192:194].strip()
         self.record_serial_number = line[194:200].strip()
@@ -92,6 +95,7 @@ class RecordFour(object):
     """ Parse an SSIM record four entry """
 
     def __init__(self, line):
+        self.original_record = line
         self.carrier_code = line[2:5].strip()
         self.flight = line[5:9].strip()
         self.ivi = line[9:11].strip()
@@ -103,7 +107,8 @@ class RecordFour(object):
         self.segment = line[33:39].strip()
         self.board_point = line[33:36].strip()
         self.off_point = line[36:39].strip()
-        self.dei_data = line[40:194].strip()
+        self.dei_data = line[39:194].strip()
+        self.record_serial_number = line[194:]
         self.name = self.carrier_code + self.flight + self.ivi + "_r4"
 
     def prettyprint(self):
@@ -158,7 +163,6 @@ class Flight(object):
             self.ivi[record.ivi][record.leg_sequence]['mct'] = record.mct
             self.ivi[record.ivi][record.leg_sequence]['codeshare_partners'] = record.joint_airline_designator
         if record.name.endswith('r4'):
-            print leg
             self.ivi[record.ivi][record.leg_sequence]['dei'] = record.dei
             self.ivi[record.ivi][record.leg_sequence]['dei_data'] = record.dei_data
         return self.ivi
