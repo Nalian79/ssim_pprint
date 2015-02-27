@@ -69,9 +69,7 @@ def update_flights(records, flights):
         flightname = flightname.replace(" ", "")
         if flightname in flights:
             flightobj = flights[flightname]
-            flightobj.create_variation(record.ivi)
-            flightobj.update_variation(record)
-
+            flightobj.create_variation(record.ivi, record)
 
 
 def parse_commands():

@@ -125,10 +125,12 @@ class RecordFour(object):
 
 
 class Flight(object):
-    """A schedule for a single flight and all of its variations.
+    """An object that represents all information for a single flight.
 
-    Each flight will have one or more variations, and each variation may
-    have one or more legs.  Use nested dictionaries to store variations.
+    Each flight will have one or more variations on it's schedule.  The Flight
+    class uses the FlightVariation class to create objects for each schedule
+    variation.  The Flight class maintains a list of those variations associated
+    with the flight in a dictionary.
     """
 
     def __init__(self, carrier_code, flight_num):
@@ -137,32 +139,39 @@ class Flight(object):
         self.flight_num = flight_num
         self.ivi = {}
 
-    def create_variation(self, ivi):
+    def create_variation(self, ivi, record):
         """ Create an initial flight variation."""
         if not ivi in self.ivi:
-            self.ivi[ivi] = {}
+            # Send this to the FlightVariation class
+            self.ivi[ivi] = FlightVariation(self.flight_num, ivi, record)
         return self.ivi
 
+
+class FlightVariation(object):
+    """An object that represents all information for a single flight variation.
+
+    Each flight variation can have one or more legs, and multiple DEIs
+    associated with it.
+    """
+
+    def __init__(self, flight_num, ivi, record):
+        self.name = flight_num + ivi
+        self.legs = {}
+        self.legs
+        self.update_variation(record)
+
     def update_variation(self, record):
-        """ Take an incoming record 3 or 4, update variation info"""
-        if not record.ivi in self.ivi:
-            print("Must create variations first before updating")
-            exit(1)
-        if not record.leg_sequence in self.ivi[record.ivi]:
-            self.ivi[record.ivi][record.leg_sequence] = {}
-        if record.name.endswith('r3'):
-            self.ivi[record.ivi][record.leg_sequence]['start'] = record.period_of_operation_start
-            self.ivi[record.ivi][record.leg_sequence]['end'] = record.period_of_operation_end
-            self.ivi[record.ivi][record.leg_sequence]['days'] = record.days_of_operation
-            self.ivi[record.ivi][record.leg_sequence]['origin'] = record.departure_station
-            self.ivi[record.ivi][record.leg_sequence]['departure_time'] = record.passenger_std
-            self.ivi[record.ivi][record.leg_sequence]['departure_timeoffset'] = record.departure_utc_variation
-            self.ivi[record.ivi][record.leg_sequence]['destination'] = record.arrival_station
-            self.ivi[record.ivi][record.leg_sequence]['arrival_time'] = record.passenger_sta
-            self.ivi[record.ivi][record.leg_sequence]['arrival_timeoffset'] = record.arrival_utc_variation
-            self.ivi[record.ivi][record.leg_sequence]['mct'] = record.mct
-            self.ivi[record.ivi][record.leg_sequence]['codeshare_partners'] = record.joint_airline_designator
-        if record.name.endswith('r4'):
-            self.ivi[record.ivi][record.leg_sequence]['dei'] = record.dei
-            self.ivi[record.ivi][record.leg_sequence]['dei_data'] = record.dei_data
-        return self.ivi
+        if not record.leg_sequence in self.legs:
+            self.legs[record.leg_sequence] = {}
+        leg = self.legs[record.leg_sequence]
+        for key in record.__dict__.keys():
+            value = getattr(record, key)
+            if key == 'dei':
+                leg['deis'] = {}
+                leg['deis'][key] = value
+            if key == 'original_record':
+                pass
+            if value != '':
+                leg[key] = value
+        return self.legs
+
