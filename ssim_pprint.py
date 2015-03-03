@@ -18,7 +18,7 @@ def parse_records(carrier, filename):
       carrier: str. Two character IATA code for Airline Carrier
       filename: Str. The file to parse
     Returns:
-      A tuple of record objects
+      A tuple of dictionary objects.  Each dictionary contains record objects.
     """
 
     carrier_regex = '^2.' + carrier.upper()
@@ -39,23 +39,26 @@ def parse_records(carrier, filename):
         return carrier_record, leg_records, seg_records
 
 
-def create_flights(records, flights):
+def create_flights(carrier_record, record_list, flights):
     """Create unique flight objects from a list of record objects.
 
     Args:
-      records: list. List of record objects obtained via parsing an SSIM file.
-      flights: dict. An empty dictionary to put flight objects into.
+      carrier_record: A record2 object for the carrier
+      record_list: List of record objects obtained via parsing an SSIM file.
+      flights: dict. A dictionary object to put flight objects into.
     Returns:
       flights: dict. Mapping of flight names to flight objects.
     """
-    for record in records:
+    for record in record_list:
         flightname = record.carrier_code + record.flight
         flightname = flightname.replace(" ", "")
         if not flightname in flights:
-            flights[flightname] = Flight(record.carrier_code, record.flight)
+            flights[flightname] = Flight(record.carrier_code,
+                                         record.flight, carrier_record)
+    return flights
 
 
-def update_flights(records, flights):
+def update_flights(record_list, flights):
     """Update flight objects with information from record objects.
 
     Args:
@@ -64,12 +67,13 @@ def update_flights(records, flights):
     returns:
       flights: dict. Updated dictionary of flight objects.
  """
-    for record in records:
+    for record in record_list:
         flightname = record.carrier_code + record.flight
         flightname = flightname.replace(" ", "")
         if flightname in flights:
             flightobj = flights[flightname]
             flightobj.create_variation(record.ivi, record)
+    return flights
 
 
 def parse_commands():
@@ -128,9 +132,14 @@ def main():
         print("SSIM file {!r} now uncompressed".format(file_to_parse))
         # parse the file into record objects
         record2s, record3s, record4s = parse_records(carrier, file_to_parse)
+        # create a record name to match records to
+        carrier_record_name = carrier + "_r2"
+        for record in record2s:
+            if record.name == carrier_record_name:
+                carrier_record = record
         # Create a dictionary for keeping track of flight objects
         flights = {}
-        create_flights(record3s, flights)
+        create_flights(carrier_record, record3s, flights)
         update_flights(record3s, flights)
 
         for k in flights:

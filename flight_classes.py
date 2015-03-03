@@ -133,11 +133,21 @@ class Flight(object):
     with the flight in a dictionary.
     """
 
-    def __init__(self, carrier_code, flight_num):
+    def __init__(self, carrier_code, flight_num, carrier_record):
         self.name = carrier_code + flight_num
         self.carrier_code = carrier_code
         self.flight_num = flight_num
         self.ivi = {}
+        self.handle_record2(carrier_record)
+
+    def handle_record2(self, carrier_record):
+        """Update Flight object with carrier record information """
+        self.time_mode = carrier_record.time_mode
+        self.validity_period = carrier_record.validity_period
+        self.valid_start = carrier_record.validity_period[:7]
+        self.valid_end = carrier_record.validity_period[7:]
+        self.release_date = carrier_record.sell_date
+        self.secure_flight = carrier_record.secure_flight
 
     def create_variation(self, ivi, record):
         """ Create an initial flight variation."""
@@ -169,9 +179,7 @@ class FlightVariation(object):
             if key == 'dei':
                 leg['deis'] = {}
                 leg['deis'][key] = value
-            if key == 'original_record':
-                pass
-            if value != '':
+            if value != '' and key != 'original_record':
                 leg[key] = value
         return self.legs
 
