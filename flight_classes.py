@@ -174,7 +174,7 @@ class FlightVariation(object):
         if not record.leg_sequence in self.legs:
             self.legs[record.leg_sequence] = {}
         leg = self.legs[record.leg_sequence]
-        for key in record.__dict__.keys():
+        for key in vars(record):
             value = getattr(record, key)
             if key == 'dei':
                 leg['deis'] = {}

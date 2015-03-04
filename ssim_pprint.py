@@ -18,7 +18,7 @@ def parse_records(carrier, filename):
       carrier: str. Two character IATA code for Airline Carrier
       filename: Str. The file to parse
     Returns:
-      A tuple of dictionary objects.  Each dictionary contains record objects.
+      A tuple of list objects.  Each list contains record objects.
     """
 
     carrier_regex = '^2.' + carrier.upper()
@@ -131,17 +131,21 @@ def main():
             pass
         print("SSIM file {!r} now uncompressed".format(file_to_parse))
         # parse the file into record objects
+        print("Parsing SSIM file into record objects")
         record2s, record3s, record4s = parse_records(carrier, file_to_parse)
         # create a record name to match records to
-        carrier_record_name = carrier + "_r2"
-        for record in record2s:
-            if record.name == carrier_record_name:
-                carrier_record = record
+        carrier_name = carrier.upper() + "_r2"
+        print("Records created for {!r}".format(carrier))
+        carrier_record = next(rec for rec in record2s if rec.name==carrier_name)
         # Create a dictionary for keeping track of flight objects
+        print("Parsed files, creating flight objects")
         flights = {}
         create_flights(carrier_record, record3s, flights)
         update_flights(record3s, flights)
+        update_flights(record4s, flights)
 
+
+        print("Flight objects created, here is your data.")
         for k in flights:
             print flights[k].name, flights[k].flight_num, flights[k].ivi
 

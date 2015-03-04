@@ -1,8 +1,12 @@
 import gzip
+import re
 
 
 def is_file_compressed(filename):
-    """ Determine if the file we are dealing with is compressed with gzip.
+    """ Determine if the file is compressed with gzip or zip.
+
+    Only supporting gz and zip currently - we don't receive anything
+    else at this time.
 
     Args:
       filename: name of the file to check.
@@ -47,10 +51,61 @@ def uncompress(filename):
         return filename
 
 
-def makeSingleCarrierSSIM(filename):
-    """Create a single carrier SSIM file from a multiple carrier SSIM."""
+def makeSingleCarrierSSIM(carrier_code, filename):
+    """Create a single carrier SSIM file from a multiple carrier SSIM.
+
+    Some SSIM files contain data for multiple airline carriers.  Pair this
+    down to the single requested carrier.
+
+    """
     # stub for the moment
     pass
+
+
+
+def isolateFlight(carrier, flight_num, filename):
+    """Pull a single flight out of an SSIM file for parsing.
+
+    Pull all record 3 and 4 entries pertaining to a single flight from
+    an SSIM file, and keep the record 2 as it also has relevant info.
+
+    Args:
+      carrier: Str.  Two character IATA carrier code.
+      flight_num: str.  The number for the flight we care about.
+      filename: str.  The name of the file to pull records out of.
+    Returns:
+      single_flight_ssim: SSIM file on disk that contains one flight.
+    """
+
+    print('Incoming file is {!r}'.format(filename))
+    print carrier, flight_num, filename
+    single_flight_ssim = carrier + "_" + flight_num + ".ssim.dat"
+    # Because the whitespace is variable depeding on the flight number, adapt
+    # the flight_num to account for that.
+    if len(flight_num) == 1:
+        flight_num = '    ' + flight_num
+    if len(flight_num) == 2:
+        flight_num = '   ' + flight_num
+    if len(flight_num) == 3:
+        flight_num = '  ' + flight_num
+    if len(flight_num) == 4:
+        flight_num = ' ' + flight_num
+    carrier_regex = '^2.' + carrier.upper()
+    flight_regex = '^[34].' + carrier.upper() + flight_num
+    f_out = open(single_flight_ssim, 'wb')
+
+    if is_file_compressed(filename):
+        filename = uncompress(filename)
+    with open(filename, 'rb') as f_in:
+        for line in f_in:
+            if re.match(carrier_regex, line):
+                f_out.writelines(line)
+            if re.match(flight_regex, line):
+                f_out.writelines(line)
+        f_out.close()
+        f_in.close()
+    return single_flight_ssim
+
 
 def make_recordtwo_dict(line):
     """Create a dictionary from an SSIM record 2"""
@@ -66,6 +121,7 @@ def make_recordtwo_dict(line):
         }
     return carrier_dict
 
+def make_recordthree_dict(line):
     leg_dict = {
         'carrier_code' : line[2:5], # Two character IATA airline code
         'flight_num' : line[5:9],
