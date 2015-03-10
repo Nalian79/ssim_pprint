@@ -4,8 +4,9 @@ import os
 import re
 import sys
 
+import utils
 from flight_classes import RecordTwo, RecordThree, RecordFour, Flight
-from utils import is_file_compressed, uncompress
+
 
 # Set the log output file and log level.
 logging.basicConfig(filename='ssim_pprint.log', level=logging.DEBUG)
@@ -124,12 +125,12 @@ def main():
 
         filename = args['ssim']
         carrier = args['carrier']
-        if is_file_compressed(filename):
-            file_to_parse = uncompress(filename)
-        else:
-            file_to_parse = filename
-            pass
-        print("SSIM file {!r} now uncompressed".format(file_to_parse))
+        flight = args['flight']
+
+        # Isolate the SSIM to a single carrier/flight
+        file_to_parse = utils.isolateFlight(carrier, flight, filename)
+
+        print("Single flight SSIM file {!r} created".format(file_to_parse))
         # parse the file into record objects
         print("Parsing SSIM file into record objects")
         record2s, record3s, record4s = parse_records(carrier, file_to_parse)
@@ -146,8 +147,7 @@ def main():
 
 
         print("Flight objects created, here is your data.")
-        for k in flights:
-            print flights[k].name, flights[k].flight_num, flights[k].ivi
+        utils.pprint_flight(flights)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ def uncompress(filename):
     args: gzfilename - the name of the gzipped file you want to uncompress.
     """
 
-    print('Incoming file is {!r}'.format(filename))
+    print('Uncompressing file {!r}'.format(filename))
     if is_file_compressed(filename):
         new_name = filename.rstrip('.gz')
         f_in = gzip.open(filename, 'rb')
@@ -54,13 +54,25 @@ def uncompress(filename):
 def makeSingleCarrierSSIM(carrier_code, filename):
     """Create a single carrier SSIM file from a multiple carrier SSIM.
 
-    Some SSIM files contain data for multiple airline carriers.  Pair this
+    Some SSIM files contain data for multiple airline carriers.  Create an
+    SSIM consisting of only a single requested carrier.
     down to the single requested carrier.
 
     """
-    # stub for the moment
-    pass
 
+    carrier_regex = '^[2345].' + carrier_code
+    single_carrier_ssim = carrier_code + "_only.ssim.dat"
+    f_out = open(single_carrier_ssim, 'wb')
+
+    if is_file_compressed(filename):
+        filename = uncompress(filename)
+    with open(filename, 'rb') as f_in:
+        for line in f_in:
+            if re.search(carrier_regex, line):
+                f_out.writelines(line)
+        f_out.close()
+        f_in.close()
+    return single_carrier_ssim
 
 
 def isolateFlight(carrier, flight_num, filename):
@@ -77,7 +89,7 @@ def isolateFlight(carrier, flight_num, filename):
       single_flight_ssim: SSIM file on disk that contains one flight.
     """
 
-    print('Incoming file is {!r}'.format(filename))
+    print('Isolating {} from file {!r}'.format(flight_num, filename))
     print carrier, flight_num, filename
     single_flight_ssim = carrier + "_" + flight_num + ".ssim.dat"
     # Because the whitespace is variable depeding on the flight number, adapt
@@ -105,6 +117,27 @@ def isolateFlight(carrier, flight_num, filename):
         f_out.close()
         f_in.close()
     return single_flight_ssim
+
+
+def pprint_flight(flights):
+    """Pretty print information for all flights present in the dictionary.
+
+    Args:
+      flights: dict - dictionary of flights to pretty print info for.
+    Returns:
+      ??? - what do you do with functions whose whole point is to print?
+
+    """
+    for flight in flights:
+        flight = flights[flight]
+        for iv in sorted(flight.ivi):
+            print("Record Variation: {}".format(flight.ivi[iv].name))
+            legs = flight.ivi[iv].legs
+            for leg in sorted(legs):
+                leg = legs[leg]
+                for record in leg:
+                    print("{} : {}".format(record, leg[record]))
+
 
 
 def make_recordtwo_dict(line):
